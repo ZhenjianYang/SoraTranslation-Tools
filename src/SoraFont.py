@@ -2,6 +2,22 @@ import struct
 
 NUM_HALFWIDTH = 16 * 12
 
+SJIS_RANGE_SIGLE_BYTE = [[0x20, 0xDF]]
+SJIS_RANGE_DOUBLE_BYTES = [[0x8140, 0x81F7], [0x8240, 0x82F1], [0x8340, 0x83D6], [0x8440, 0x84BE], [0x8740, 0x879C], [0x889F, 0x9FFC], [0xE040, 0xEAA5]]
+
+NO2SJIS = []
+SJIS2NO = {}
+
+def _init_map():
+    for l, h in SJIS_RANGE_SIGLE_BYTE + SJIS_RANGE_DOUBLE_BYTES:
+        for code in range(l, h+1):
+            if code >= 0x8000 and not 0x40 <= (code & 0xFF) <= 0xFC:
+                continue
+            SJIS2NO[code] = len(NO2SJIS)
+            NO2SJIS.append(code)
+
+_init_map()
+
 class SoraFont:
     class Char:
         def __init__(self, size = 16, ishalf = False):
