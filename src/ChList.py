@@ -26,7 +26,7 @@ class ChList:
         with open(chlist_filename, mode='r', encoding=chlist_encoding) as file:
             for line in file:
                 line = list(line)
-                while line and line[-1] in '\r\n\t ': line.pop()
+                while line and line[-1] in '\r\n\t': line.pop()
                 line = ''.join(line)
                 if not line: continue
                 i = line.find('=', 1)
