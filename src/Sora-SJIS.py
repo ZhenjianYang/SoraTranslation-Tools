@@ -1,5 +1,5 @@
 import codecs
-import struct, os
+import struct, os, sys
 
 from ChList import ChList
 
@@ -45,7 +45,14 @@ def get_regentry(codec_name, chlist_filename, base_codec_name):
 
 def register(codec_name = CODEC_NAME,
              chlist_filename = os.path.join(DIR_PY, DEFAULT_CHLIST_FILENAME),
-             base_codec_name = CODEC_SJIS):
+             base_codec_name = CODEC_SJIS,
+             use_sysargs = True):
+    if use_sysargs:
+        for arg in sys.argv[1:]:
+            if arg.startswith('--chlist='):
+                chlist_filename = arg[len('--chlist='):]
+            elif arg.startswith('--base_encoding='):
+                base_codec_name = arg[len('--base_encoding='):]
     codec_name = codec_name.lower()
     base_codec_name = base_codec_name.lower()
     regentry = get_regentry(codec_name, chlist_filename, base_codec_name)
@@ -56,5 +63,5 @@ def register(codec_name = CODEC_NAME,
             return None
     codecs.register(search_function)
 
-def get_codec_name():
+def get_name():
     return CODEC_NAME
