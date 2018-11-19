@@ -23,7 +23,7 @@ class SoraFont:
         def __init__(self, size = 16, ishalf = False):
             self.size = size
             self.ishalf = ishalf
-            self.width = size if ishalf else (size + 3) // 4 * 2
+            self.width = size if not ishalf else (size + 3) // 4 * 2
             self.data = [[0] * self.width for i in range(size)]
         
         def load_data(self, bs, offset = 0):
@@ -49,10 +49,18 @@ class SoraFont:
     def num(self):
         return len(self.chars)
     
+    def set_num(self, num):
+        while num < len(self.chars):
+            self.chars.pop()
+        while len(self.chars) < num:
+            ishalf = len(self.chars) < NUM_HALFWIDTH
+            char = SoraFont.Char(self.size, ishalf)
+            self.chars.append(char)
+    
     def load_data(self, bs, offset = 0):
         p = offset
         while p < len(bs):
-            ishalf = len(self.chars) >= NUM_HALFWIDTH
+            ishalf = len(self.chars) < NUM_HALFWIDTH
             num_bytes = self.size * self.size // 2 if ishalf else self.size * self.size
             if p + num_bytes > len(bs): break
             char = SoraFont.Char(self.size, ishalf)
