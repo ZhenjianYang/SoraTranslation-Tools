@@ -3,13 +3,16 @@ import sys, os
 from CodeTable import CodeTable
 
 FILE_ENCODING = 'utf-8'
+BASE_CODEC = 'ms932'
 
 def PrintUsage():
-    print('%s [-f fixed_chlist] [-h halfwidth_chars] [-t fullwidth_chars] [-p pyfiles] out_chlist' % sys.argv[0])
+    print('%s [-f fixed_chlist] [-h halfwidth_chars] [-t fullwidth_chars] [-p pyfiles] [-c inputfile encoding] [-x] out_chlist' % sys.argv[0])
     print('    -f     : a file, fixed chlist')
     print('    -h     : txt file or folder, halfwidth chars')
     print('    -t     : txt file or folder, fullwidth chars')
     print('    -p     : py file or folder, fullwidth chars')
+    print('    -c     : inputfile encoding, default: ms932')
+    print('    -x     : Creat fixed chlist')
     print('    -h, -t, -p can appear more than one times')
 
 def GetFiles(dir, ext = '.txt'):
@@ -31,6 +34,8 @@ def GetParams():
     fns_txt_fw = []
     fns_py = []
     fn_ch_out = ''
+    codec_in = FILE_ENCODING
+    gen_fixed = False
     i = 1
     while i < len(sys.argv):
         if sys.argv[i] and sys.argv[i][0] == '-' and i + 1 < len(sys.argv):
@@ -49,17 +54,23 @@ def GetParams():
             elif sys.argv[i][1:] == 'p':
                 fns_py.extend(GetFiles(sys.argv[i+1], '.py'))
                 i += 2
+            elif sys.argv[i][1:] == 'c':
+                codec_in = sys.argv[i+1]
+                i += 2
+            elif sys.argv[i][1:] == 'x':
+                gen_fixed = True
+                i += 1
             else:
                 print('Bad parameter: {0}'.format(sys.argv[i]))
                 i += 1
         else:
             fn_ch_out = sys.argv[i]
             i += 1
-    return None if not fn_ch_out else fn_fch, fns_txt_hw, fns_txt_fw, fns_py, fn_ch_out
+    return None if not fn_ch_out else fn_fch, fns_txt_hw, fns_txt_fw, fns_py, codec_in, gen_fixed, fn_ch_out
 
-def GetChars(filename, ispy=False):
+def GetChars(filename, codec_in = BASE_CODEC, ispy=False):
     ret = set()
-    with open(filename, mode='r', encoding=FILE_ENCODING) as file:
+    with open(filename, mode='r', encoding=codec_in) as file:
         for line in file:
             if ispy:
                 t = []
@@ -90,7 +101,7 @@ def main():
     if not params:
         PrintUsage()
         return
-    fn_fch, fns_txt_hw, fns_txt_fw, fns_py, fn_ch_out = params
+    fn_fch, fns_txt_hw, fns_txt_fw, fns_py, codec_in, gen_fixed, fn_ch_out = params
 
     ct = CodeTable()
     ct.add_fixed(fn_fch)
@@ -98,20 +109,31 @@ def main():
     hws, fws = [], []
     for txt in fns_txt_hw:
         print('Collecting chars from {0}...'.format(txt))
-        hws.extend(GetChars(txt))
+        hws.extend(GetChars(txt, codec_in))
     for txt in fns_txt_fw:
         print('Collecting chars from {0}...'.format(txt))
-        fws.extend(GetChars(txt))
+        fws.extend(GetChars(txt, codec_in))
     for py in fns_py:
         print('Collecting chars from {0}...'.format(py))
-        fws.extend(GetChars(py, ispy=True))
+        fws.extend(GetChars(py, codec_in, ispy=True))
     
     hws, fws = sorted(set(hws)), sorted(set(fws))
-    for ch in hws:
-        ct.add(ch, half=True)
-    for ch in fws:
-        ct.add(ch)
-    chars = ct.get_added_list()
+    if gen_fixed:
+        for ch in hws + fws:
+            try: bs = ch.encode(BASE_CODEC)
+            except:
+                print('Not a sjis char: ' + ch)
+                continue
+            sjis = 0
+            for b in bs: sjis = (sjis << 8) | b
+            ct.add_fixed_sjis(sjis, ch)
+        chars = ct.get_fixed_list() 
+    else:
+        for ch in hws:
+            ct.add(ch, half=True)
+        for ch in fws:
+            ct.add(ch)
+        chars = ct.get_added_list() 
     with open(fn_ch_out, encoding=FILE_ENCODING, mode='w') as file:
         for sjis, ucs in chars:
             file.write('{0:X}={1}\n'.format(sjis, chr(ucs)))

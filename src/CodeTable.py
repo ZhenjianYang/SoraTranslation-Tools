@@ -23,11 +23,30 @@ class CodeTable:
         self.idx = NUM_HALFWIDTH
         self.added = [0] * len(NO2SJIS)
     
+    def add_fixed_sjis(self, sjis, ucs=None):
+        if sjis not in SJIS2NO:
+            print('Warning: not a valid SJIS code: {0:X}'.format(sjis))
+            return 0
+        i = SJIS2NO[sjis]
+        if ucs == None:
+            bs = bytearray()
+            if sjis >= 0x8000:
+                bs.append(sjis >> 8)
+            bs.append(sjis & 0xFF)
+            ucs = ord(bs.decode(BASE_CODEC))
+        elif type(ucs) is str:
+            ucs = ord(ucs)
+            
+        self.fixed.add(i)
+        self.no2ucs[i] = ucs
+        self.ucs2no[ucs] = i
+        return ucs
+    
     def add_fixed(self, chlist_filename):
         chlist = ChList(BASE_CODEC, chlist_filename)
         for ch in chlist:
             sjis = 0
-            for b in ch.code: sjis = (sjis << 16) | b
+            for b in ch.code: sjis = (sjis << 8) | b
             if sjis not in SJIS2NO:
                 print('Warning: not a valid SJIS code: {0:X}'.format(sjis))
                 continue
@@ -70,3 +89,10 @@ class CodeTable:
             if ucs:
                 added_list.append([NO2SJIS[i], ucs])
         return added_list
+    
+    def get_fixed_list(self):
+        fixed_list = []
+        for i in sorted(self.fixed):
+            if self.no2ucs[i]:
+                fixed_list.append([NO2SJIS[i], self.no2ucs[i]])
+        return fixed_list
