@@ -26,7 +26,11 @@ class SoraCodec(codecs.Codec):
         return bytes(output), len(output)
 
     def decode(self, byte_array, errors='strict'):
-        raise UnicodeDecodeError('Decode is not supported.')
+        s = []
+        for ch in codecs.decode(byte_array, self.base_codec_name):
+            ch = self.ch_map.get(ch, ch)
+            s.append(ch)
+        return ''.join(s), len(s)
 
 def get_ch_map(chlist_filename, base_codec_name):
     ch_map = {}
