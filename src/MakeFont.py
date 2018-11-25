@@ -89,8 +89,8 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
                     font.load_data(bs)
                     break
             except: continue
-    maxno = chlist[-1][0]
-    if maxno >= font.num():
+    maxno = chlist[-1][0] if chlist else 0
+    if maxno >= font.num() and not inputfolder:
         font.set_num(maxno + 1)
 
     face = freetype.Face(fontfile)
@@ -100,6 +100,9 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
         face.set_transform(matrix, c_voidp(0))
     
     for no, ucs in chlist:
+        if no >= font.num():
+            break
+
         face.load_char(ucs, flags = freetype.FT_LOAD_DEFAULT)
 
         if bold > 0:
