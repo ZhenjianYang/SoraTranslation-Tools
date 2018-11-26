@@ -1,5 +1,5 @@
 
-from SoraFont import NO2SJIS, SJIS2NO, NUM_HALFWIDTH
+from SoraFont import NO2SJIS, SJIS2NO, NUM_HALFWIDTH, NUM_SYMBOLS
 from ChList import ChList
 BASE_CODEC = 'ms932'
 
@@ -20,7 +20,7 @@ class CodeTable:
             except: self.fixed.add(i)
         
         self.idx_h = 0
-        self.idx = NUM_HALFWIDTH
+        self.idx = NUM_SYMBOLS
         self.added = [0] * len(NO2SJIS)
     
     def add_fixed_sjis(self, sjis, ucs=None):

@@ -36,7 +36,8 @@ def get_ch_map(chlist_filename, base_codec_name):
     ch_map = {}
     chlist = ChList(base_codec_name, chlist_filename, CHLIST_ENCODEING)
     for ch in chlist:
-        ch_map[ch.glyph] = ch.code.decode(base_codec_name)
+        if ch.glyph not in ch_map:
+            ch_map[ch.glyph] = ch.code.decode(base_codec_name)
     return ch_map
 
 def get_regentry(codec_name, chlist_filename, base_codec_name):
