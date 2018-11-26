@@ -92,7 +92,7 @@ def GetChars(filename, codec_in = BASE_CODEC, ispy=False):
                         i += 1
                 line = ''.join(t)
             for ch in line:
-                if 0xFEFF > ord(ch) >= 0x20:
+                if  ord(ch) >= 0x20 and ord(ch) != 0xFEFF:
                     ret.add(ch)
     return sorted(ret)
 

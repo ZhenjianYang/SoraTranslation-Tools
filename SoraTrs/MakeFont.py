@@ -78,11 +78,13 @@ def GetItalicMatrix(italic):
     return matrix
 
 def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chlist, outputfolder):
-    filename = 'FONT{0:<4}.DAT'.format(size)
-    filename2 = 'FONT{0}.DAT'.format(size)
+    filenames = ['FONT{0:<4}._DA'.format(size),
+                 'FONT{0}._DA'.format(size),
+                 'FONT{0:<4}.DAT'.format(size),
+                 'FONT{0}.DAT'.format(size)]
     font = SoraFont(size)
     if inputfolder:
-        for fn in [filename, filename2]:
+        for fn in filenames:
             try:
                 with open(os.path.join(inputfolder, fn), 'rb') as fs:
                     bs = fs.read()
@@ -126,7 +128,7 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
                 char.data[y+y0][x+x0] = buffer[y*width+x]
     
     bs = font.to_bytes()
-    with open(os.path.join(outputfolder, filename), 'wb') as fs:
+    with open(os.path.join(outputfolder, filenames[0]), 'wb') as fs:
         fs.write(bs)
 
 def main():
@@ -151,6 +153,7 @@ def main():
         os.makedirs(outputfolder)
 
     for size in sizeslist:
+        print('Creating font with size : {0}'.format(size))
         boldt, dxt, dyt, fontsizet = bold * size // 100, dx * size // 100, (dy + 20) * size // 100, size * fontsize // 100
         CreateFont(boldt, italic, dxt, dyt, size, fontsizet, inputfolder, fontfile, chlistt, outputfolder)
 

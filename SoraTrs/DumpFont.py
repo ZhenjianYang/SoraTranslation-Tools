@@ -39,6 +39,7 @@ def SaveToPng(ppng, font, grid = False):
 
 def getSubFiles(dir, ext = '.dat'):
     ret = []
+    ext = ext.lower()
     dir_list =  os.listdir(dir)
     for file in dir_list:
         path = os.path.join(dir, file)
@@ -68,9 +69,10 @@ def main():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     
-    files = getSubFiles(font_dir)
+    files = getSubFiles(font_dir, '.dat') + getSubFiles(font_dir, '._da') 
     for file in files:
         fn = os.path.splitext(file)[0].rstrip(' ')
+        print('Dumping font file : {0}...'.format(fn))
         if fn.lower().startswith('font'):
             size = fn[4:]
             try: size = int(size)
