@@ -14,7 +14,7 @@ DFT_SIZES = [ 8, 12, 16, 18, 20, 24, 26, 30,
              64, 72, 80, 96, 128, 144, 160, 192]
 
 def PrintUsage():
-    print('%s [-b bold] [-i italic] [-x dx] [-y dy] [-l sizelist] [-s fontsize] [-p inputfolder] -f fontfile -c chlist outputfolder' % sys.argv[0])
+    print('%s [-b bold] [-i italic] [-x dx] [-y dy] [-l sizelist] [-s fontsize] [-p inputfolder] [-r Lo-Hi] -f fontfile -c chlist outputfolder' % sys.argv[0])
     print('    -b     : bold (bold * size / 6400) pixel(s)')
     print('    -i     : italic -100 ~ 100')
     print('    -x     : x position (dx * size / 100), right is positive')
@@ -22,12 +22,13 @@ def PrintUsage():
     print('    -l     : sizelist, e.g -s 12,24,36,48. default: all sizes')
     print('    -s     : fontsize (fontsize * size / 100)')
     print('    -p     : inputfolder')
+    print('    -r     : sjis range Lo~Hi (Hex)')
     print('    -f     : fontfile(ttf)')
     print('    -c     : chlist file (txt)')
 
 def GetParams():
     iarg = 1
-    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, outputfolder = 0, 0, 0, 0, DFT_SIZES, 90, None, '', '', ''
+    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, ranges, fontfile, chlistfile, outputfolder = 0, 0, 0, 0, DFT_SIZES, 90, None, [], '', '', ''
     while iarg < len(sys.argv):
         if sys.argv[iarg] and sys.argv[iarg][0] == '-':
             if sys.argv[iarg][1] == 'b':
@@ -48,6 +49,12 @@ def GetParams():
             elif sys.argv[iarg][1] == 's':
                 try: fontsize = sys.argv[iarg+1]
                 except: return None
+            elif sys.argv[iarg][1] == 'r':
+                try:
+                    lo, hi = map(lambda x:int(x, 16), sys.argv[iarg+1].split('-'))
+                    if not 0 <= lo <= hi: return None
+                    ranges.append([lo, hi])
+                except: return None
             elif sys.argv[iarg][1] == 'l':
                 try: sizeslist = list(map(int, sys.argv[iarg+1].split(',')))
                 except: return None
@@ -66,7 +73,7 @@ def GetParams():
         else: return None
     if not fontfile or not chlistfile:
         return
-    return bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, outputfolder
+    return bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, ranges, outputfolder
 
 def GetItalicMatrix(italic):
     lean = italic / 100
@@ -136,7 +143,7 @@ def main():
     if not params:
         PrintUsage()
         return
-    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, outputfolder = params
+    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, ranges, outputfolder = params
     chlist = ChList(CHLIST_BASE_CODEC, chlistfile)
     chlistt = []
     for ch in chlist:
@@ -144,6 +151,8 @@ def main():
             sjis = int(ch.code[0])
         else:
             sjis = int(ch.code[0]) << 8 | int(ch.code[1])
+        if ranges and all([not lo <= sjis <= hi for lo, hi in ranges]):
+            continue
         ucs = ord(ch.glyph)
         if sjis in SJIS2NO:
             chlistt.append([SJIS2NO[sjis], ucs])
