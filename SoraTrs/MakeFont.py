@@ -12,9 +12,10 @@ CHLIST_ENCODING = 'utf8'
 DFT_SIZES = [ 8, 12, 16, 18, 20, 24, 26, 30,
              32, 36, 40, 44, 48, 50, 54, 60,
              64, 72, 80, 96, 128, 144, 160, 192]
+RELATED_SIZE_FOR_FONT_WIDTH = 32
 
 def PrintUsage():
-    print('%s [-b bold] [-i italic] [-x dx] [-y dy] [-l sizelist] [-s fontsize] [-p inputfolder] [-r Lo-Hi] -f fontfile -c chlist outputfolder' % sys.argv[0])
+    print('%s [-b bold] [-i italic] [-x dx] [-y dy] [-l sizelist] [-s fontsize] [-p inputfolder] [-r Lo-Hi] [-w fontwidthfile] -f fontfile -c chlist outputfolder' % sys.argv[0])
     print('    -b     : bold (bold * size / 6400) pixel(s)')
     print('    -i     : italic -100 ~ 100')
     print('    -x     : x position (dx * size / 100), right is positive')
@@ -23,12 +24,14 @@ def PrintUsage():
     print('    -s     : fontsize (fontsize * size / 100)')
     print('    -p     : inputfolder')
     print('    -r     : sjis range Lo~Hi (Hex)')
+    print('    -w     : create fontwidthfile for ascii codes')
     print('    -f     : fontfile(ttf)')
     print('    -c     : chlist file (txt)')
 
 def GetParams():
     iarg = 1
-    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, ranges, fontfile, chlistfile, outputfolder = 0, 0, 0, 0, DFT_SIZES, 90, None, [], '', '', ''
+    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, ranges, fontwidthfile, fontfile, chlistfile, outputfolder = \
+        0,     0,  0,  0, DFT_SIZES,       90,        None,     [],            '',        '',        '',           ''
     while iarg < len(sys.argv):
         if sys.argv[iarg] and sys.argv[iarg][0] == '-':
             if sys.argv[iarg][1] == 'b':
@@ -45,6 +48,9 @@ def GetParams():
                 except: return None
             elif sys.argv[iarg][1] == 'p':
                 try: inputfolder = sys.argv[iarg+1]
+                except: return None
+            elif sys.argv[iarg][1] == 'w':
+                try: fontwidthfile = sys.argv[iarg+1]
                 except: return None
             elif sys.argv[iarg][1] == 's':
                 try: fontsize = sys.argv[iarg+1]
@@ -73,7 +79,7 @@ def GetParams():
         else: return None
     if not fontfile or not chlistfile:
         return
-    return bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, ranges, outputfolder
+    return bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, ranges, fontwidthfile, outputfolder
 
 def GetItalicMatrix(italic):
     lean = italic / 100
@@ -84,13 +90,13 @@ def GetItalicMatrix(italic):
     matrix.yy = freetype.FT_Fixed(0x10000 * 1)
     return matrix
 
-def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chlist, outputfolder):
+def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chlist, outputfolder, fontwidthfile = ''):
     filenames = ['FONT{0:<4}._DA'.format(size),
                  'FONT{0}._DA'.format(size),
                  'FONT{0:<4}.DAT'.format(size),
                  'FONT{0}.DAT'.format(size)]
     font = SoraFont(size)
-    if inputfolder:
+    if not fontwidthfile and inputfolder:
         for fn in filenames:
             try:
                 with open(os.path.join(inputfolder, fn), 'rb') as fs:
@@ -99,7 +105,7 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
                     break
             except: continue
     maxno = chlist[-1][0] if chlist else 0
-    if maxno >= font.num() and not inputfolder:
+    if maxno >= font.num() and not inputfolder and not fontwidthfile:
         font.set_num(maxno + 1)
 
     face = freetype.Face(fontfile)
@@ -108,9 +114,12 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
         matrix = GetItalicMatrix(italic)
         face.set_transform(matrix, c_voidp(0))
     
+    fs_fontwidth = open(os.path.join(outputfolder, fontwidthfile), 'w') if fontwidthfile else None
     for no, ucs in chlist:
-        if no >= font.num():
-            break
+        if not fontwidthfile and no >= font.num(): break
+        
+        if fontwidthfile and NO2SJIS[no] < 0x20: continue
+        if fontwidthfile and NO2SJIS[no] >= 0x80: break
 
         face.load_char(ucs, flags = freetype.FT_LOAD_DEFAULT)
 
@@ -126,6 +135,10 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
         height = bitmap.rows
         bitmap_left = face.glyph.bitmap_left
         bitmap_top = face.glyph.bitmap_top
+
+        if fontwidthfile:
+            fs_fontwidth.write('{0:X} {1}\n'.format(NO2SJIS[no], face.glyph.advance.x // 64))
+            continue
         
         char = SoraFont.Char(size, font.chars[no].ishalf)
         font.chars[no] = char
@@ -134,6 +147,9 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
             for x in range(max(-x0, 0), min(width, char.width-x0)):
                 char.data[y+y0][x+x0] = buffer[y*width+x]
     
+    if fs_fontwidth:
+        fs_fontwidth.close()
+
     bs = font.to_bytes()
     with open(os.path.join(outputfolder, filenames[0]), 'wb') as fs:
         fs.write(bs)
@@ -143,7 +159,7 @@ def main():
     if not params:
         PrintUsage()
         return
-    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, ranges, outputfolder = params
+    bold, italic, dx, dy, sizeslist, fontsize, inputfolder, fontfile, chlistfile, ranges, fontwidthfile, outputfolder = params
     chlist = ChList(CHLIST_BASE_CODEC, chlistfile)
     chlistt = []
     for ch in chlist:
@@ -165,6 +181,9 @@ def main():
         print('Creating font with size : {0}'.format(size))
         boldt, dxt, dyt, fontsizet = bold * size // 100, dx * size // 100, (dy + 20) * size // 100, size * fontsize // 100
         CreateFont(boldt, italic, dxt, dyt, size, fontsizet, inputfolder, fontfile, chlistt, outputfolder)
+    
+    if fontwidthfile:
+        CreateFont(boldt, italic, dxt, dyt, RELATED_SIZE_FOR_FONT_WIDTH, RELATED_SIZE_FOR_FONT_WIDTH * fontsize // 100, inputfolder, fontfile, chlistt, outputfolder, fontwidthfile)
 
 if __name__ == '__main__':
     main()
