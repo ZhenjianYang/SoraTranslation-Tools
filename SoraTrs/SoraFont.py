@@ -62,9 +62,9 @@ class SoraFont:
         p = offset
         while p < len(bs):
             ishalf = len(self.chars) < NUM_HALFWIDTH
-            num_bytes = self.size * self.size // 2 if ishalf else self.size * self.size
-            if p + num_bytes > len(bs): break
             char = SoraFont.Char(self.size, ishalf)
+            num_bytes = char.size * char.width // 2
+            if p + num_bytes > len(bs): break
             p += char.load_data(bs, p)
             self.chars.append(char)
     
