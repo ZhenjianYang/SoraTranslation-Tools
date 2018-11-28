@@ -149,6 +149,7 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
     
     if fs_fontwidth:
         fs_fontwidth.close()
+        return
 
     bs = font.to_bytes()
     with open(os.path.join(outputfolder, filenames[0]), 'wb') as fs:
