@@ -7,6 +7,7 @@ from ctypes import c_voidp
 from ChList import ChList
 from SoraFont import SoraFont, SJIS2NO, NO2SJIS
 
+
 CHLIST_BASE_CODEC = 'ms932'
 CHLIST_ENCODING = 'utf8'
 DFT_SIZES = [ 8, 12, 16, 18, 20, 24, 26, 30,
@@ -15,13 +16,13 @@ DFT_SIZES = [ 8, 12, 16, 18, 20, 24, 26, 30,
 RELATED_SIZE_FOR_FONT_WIDTH = 32
 
 def PrintUsage():
-    print('%s [-b bold] [-i italic] [-x dx] [-y dy] [-l sizelist] [-s fontsize] [-p inputfolder] [-r Lo-Hi] [-w fontwidthfile] -f fontfile -c chlist outputfolder' % sys.argv[0])
-    print('    -b     : bold (bold * size / 6400) pixel(s)')
-    print('    -i     : italic -100 ~ 100')
-    print('    -x     : x position (dx * size / 100), right is positive')
-    print('    -y     : y position (dy * size / 100), up is positive')
+    print('%s [-b bold] [-x dx] [-y dy] [-l sizelist] [-s fontsize] [-p inputfolder] [-r Lo-Hi] [-w fontwidthfile] -f fontfile -c chlist outputfolder' % sys.argv[0])
+    print('    -b     : embolden (bold * size / 64) pixel(s), 0.00~')
+    print('    -x     : x position (dx * size / 64), right is positive, -64.00~64.00')
+    print('    -y     : y position (dy * size / 64), up is positive, -64.00~64.00')
+    print('    -s     : fontsize (fontsize * size / 64), 0.00~')
+    #print('    -i     : italic -100 ~ 100')
     print('    -l     : sizelist, e.g -s 12,24,36,48. default: all sizes')
-    print('    -s     : fontsize (fontsize * size / 100)')
     print('    -p     : inputfolder')
     print('    -r     : sjis range Lo~Hi (Hex)')
     print('    -w     : create fontwidthfile for ascii codes')
@@ -31,20 +32,20 @@ def PrintUsage():
 def GetParams():
     iarg = 1
     bold, italic, dx, dy, sizeslist, fontsize, inputfolder, ranges, fontwidthfile, fontfile, chlistfile, outputfolder = \
-        0,     0,  0,  0, DFT_SIZES,       90,        None,     [],            '',        '',        '',           ''
+        0,     0,  0,  0, DFT_SIZES,       64,        None,     [],            '',        '',        '',           ''
     while iarg < len(sys.argv):
         if sys.argv[iarg] and sys.argv[iarg][0] == '-':
             if sys.argv[iarg][1] == 'b':
-                try: bold = int(sys.argv[iarg+1])
+                try: bold = float(sys.argv[iarg+1])
                 except: return None
             elif sys.argv[iarg][1] == 'i':
                 try: italic = int(sys.argv[iarg+1])
                 except: return None
             elif sys.argv[iarg][1] == 'x':
-                try: dx = int(sys.argv[iarg+1])
+                try: dx = float(sys.argv[iarg+1])
                 except: return None
             elif sys.argv[iarg][1] == 'y':
-                try: dy = int(sys.argv[iarg+1])
+                try: dy = float(sys.argv[iarg+1])
                 except: return None
             elif sys.argv[iarg][1] == 'p':
                 try: inputfolder = sys.argv[iarg+1]
@@ -53,7 +54,7 @@ def GetParams():
                 try: fontwidthfile = sys.argv[iarg+1]
                 except: return None
             elif sys.argv[iarg][1] == 's':
-                try: fontsize = sys.argv[iarg+1]
+                try: fontsize = float(sys.argv[iarg+1])
                 except: return None
             elif sys.argv[iarg][1] == 'r':
                 try:
@@ -177,14 +178,18 @@ def main():
             print('Warning: code not exists: {0:02X}'.format(sjis))
     if not os.path.exists(outputfolder):
         os.makedirs(outputfolder)
-
+    
     for size in sizeslist:
-        print('Creating font with size : {0}'.format(size))
-        boldt, dxt, dyt, fontsizet = bold * size // 100, dx * size // 100, (dy + 20) * size // 100, size * fontsize // 100
+        print('Creating font, size : {0}...'.format(size))
+        boldt, dxt, dyt, fontsizet = round(bold * size), round(dx * size / 64), round((dy + 10.75) * size / 64), round(size * fontsize / 64)
         CreateFont(boldt, italic, dxt, dyt, size, fontsizet, inputfolder, fontfile, chlistt, outputfolder)
     
     if fontwidthfile:
-        CreateFont(boldt, italic, dxt, dyt, RELATED_SIZE_FOR_FONT_WIDTH, RELATED_SIZE_FOR_FONT_WIDTH * fontsize // 100, inputfolder, fontfile, chlistt, outputfolder, fontwidthfile)
+        print('Creating fontwidth file')
+        size = RELATED_SIZE_FOR_FONT_WIDTH
+        boldt, dxt, dyt, fontsizet = round(bold * size), round(dx * size / 64), round((dy + 10.75) * size / 64), round(size * fontsize / 64)
+        CreateFont(boldt, italic, dxt, dyt, size, fontsizet, inputfolder, fontfile, chlistt, outputfolder, fontwidthfile)
+
 
 if __name__ == '__main__':
     main()
