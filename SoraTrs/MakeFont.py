@@ -146,7 +146,8 @@ def CreateFont(bold, italic, dx, dy, size, fontsize, inputfolder, fontfile, chli
         x0, y0 = dx + bitmap_left, size - dy - bitmap_top
         for y in range(max(-y0, 0), min(height, char.size-y0)):
             for x in range(max(-x0, 0), min(width, char.width-x0)):
-                char.data[y+y0][x+x0] = buffer[y*width+x]
+                if y*width+x < len(buffer):
+                    char.data[y+y0][x+x0] = buffer[y*width+x]
     
     if fs_fontwidth:
         fs_fontwidth.close()

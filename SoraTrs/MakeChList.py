@@ -11,7 +11,7 @@ def PrintUsage():
     print('    -h     : txt file or folder, halfwidth chars')
     print('    -t     : txt file or folder, fullwidth chars')
     print('    -p     : py file or folder, fullwidth chars')
-    print('    -c     : inputfile encoding, default: ms932')
+    print('    -c     : inputfile encoding, default: {0}'.format(FILE_ENCODING))
     print('    -x     : Creat fixed chlist')
     print('    -h, -t, -p can appear more than one times')
 
@@ -66,7 +66,7 @@ def GetParams():
         else:
             fn_ch_out = sys.argv[i]
             i += 1
-    return None if not fn_ch_out else fn_fch, fns_txt_hw, fns_txt_fw, fns_py, codec_in, gen_fixed, fn_ch_out
+    return None if not fn_ch_out else (fn_fch, fns_txt_hw, fns_txt_fw, fns_py, codec_in, gen_fixed, fn_ch_out)
 
 def GetChars(filename, codec_in = BASE_CODEC, ispy=False):
     ret = set()
