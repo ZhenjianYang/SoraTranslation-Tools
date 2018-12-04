@@ -11,9 +11,9 @@ pip install pypng freetype-py
 
 ## How to   
 **3 Steps:**   
-1. [Create chlist.txt](README.md#1-Create-chlisttxt) 
-2. [Encode strings with SoraSJIS.py](README.md#2-Encode-strings-with-SoraSJISpy)   
-3. [Create fonts files](README.md#3-Create-fonts-files)  
+1. [Create chlist.txt](#1-Create-chlisttxt) 
+2. [Encode strings with SoraSJIS.py](#2-Encode-strings-with-SoraSJISpy)   
+3. [Create fonts files](#3-Create-fonts-files)  
 
 Here are some examples:  [examples/chinese](examples/chinese), [examples/french](examples/french) 
 
