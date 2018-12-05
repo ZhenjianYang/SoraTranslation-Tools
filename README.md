@@ -15,11 +15,11 @@ pip install pypng freetype-py
 2. [Encode strings with SoraSJIS.py](#2-Encode-strings-with-SoraSJISpy)   
 3. [Create fonts files](#3-Create-fonts-files)  
 
-Here are some examples:  [examples/chinese](examples/chinese), [examples/french](examples/french) 
+Here are examples:  [examples/chinese](examples/chinese), [examples/french](examples/french) 
 
 ### 1. Create chlist.txt   
 
-The basic idea of this project is replacing some Japanese characters with characters which are not included in cp932. So we need a replacement table. We use chlist.txt to define this table.
+The basic idea of this project is replacing some Japanese characters with characters which are not included in cp932. So we need a replacement table. In this project, we use chlist.txt to define this table.
 
 chiist.txt is a text file, its encoding is utf8 (No BOM), and the format of each line is:   
 ```
@@ -40,7 +40,7 @@ We should create a chlist.txt containing all characters we need but not belong t
 Usage:    
 `MakeChList.py [-f fixed_list] [-h halfwidth_characters_list] [-f fullwidth_characters_list] chlist.txt` 
 
-We divide the range of cp932 into 3 parts:   
+It divides the range of cp932 into 3 parts:   
 
 - **ASCII part (20-7F)**, all characters in this part will not be replaced.   
 - **halfwidth-kana part (A0-DF)**, characters in this part will be replaced by characters in file *halfwidth_characters_list*. Please note that the width of characters in this part is half of fullwidth characters.  
@@ -49,7 +49,7 @@ We divide the range of cp932 into 3 parts:
 We can assign a *fixed_list*, characters listed in *fixed_list* also won't be replaced.   
 
 ### 2. Encode strings with [SoraSJIS.py](SoraTrs/SoraSJIS.py)   
-With the replacement table chlist.txt, we defined a code page, we need to encode strings with this code page. [SoraSJIS.py](SoraTrs/SoraSJIS.py) is such a code page defined by chlist.txt and can be used just as other standard code pages.
+With the replacement table chlist.txt, we defined a code page, we need to encode strings with this code page. [SoraSJIS.py](SoraTrs/SoraSJIS.py) is such a code page defined by chlist.txt and can be used just like other standard code pages.
 
 Here is an example:
 ```python
@@ -66,14 +66,14 @@ If the contents of D:\chlist.txt are:
 B1=à
 88A8=们
 ```
-The result of these code is:
+The result of these codes is:
 ```
 b'\xB1\x88\xA8\x61\x92\x4A'
 ```
-Please note that characters not contained in chlist.txt will be encoded with cp932.
+Note that characters not contained in chlist.txt will be encoded with cp932.
 
-The path of chlist.txt can be assigned with command arguments.   
-For example, we change the code to:   
+The path of chlist.txt can be assigned with command line arguments.   
+For example, if we change these codes to:   
 ```python
 import SoraSJIS
 
@@ -91,22 +91,22 @@ We will get the same result.
 
 ### 3. Create fonts files
 
-Since chlist.txt is a replacement table, we just replace glyphs listed in chlist.txt.So we need to extract all FONT*.DAT files from ED6_DT00/ED6_DT20 with [falcncvt tool](http://www.pokanchan.jp/dokuwiki/software/falcnvrt/start) first. 
+In fact, we won't make the whole font files, but only replace glyphs listed in chlist.txt. So we need the original font files (FONT*.DAT or FONT*._DA files). They can be extracted from ED6_DT00/ED6_DT20 with [falcncvt tool](http://www.pokanchan.jp/dokuwiki/software/falcnvrt/start). 
 
 And we use [MakeFont.py](SoraTrs/MakeFont.py) to create:   
 ```
 MakeFont.py [-b bold] [-x dx] [-y dy] [-s fontsize] [-r range] -f ttf_file -c chlist.txt -p dir_fonts outputfolder
 ```
- - -b : embolden, e.g. '-b 0.75' means 'embolden 0.75 pixel'
- - -x : move rightwards, e.g. '-x -2.5' means 'move leftwards 2.5 pixels'
- - -y : move upwards, e.g. '-x 1.5' means 'move upwards 1.5 pixels'
- - -s : set the font size, e.g. '-s 48' means 'set font size to 48'   
-Since the game contains different sizes of fonts, MakeFont.py will create them together. These 4 arguments are base on size 64. Arguments for other sizes will be calculated proportionately. e.g. above examples for size 128 means 'embolden 1.5 pixel', 'move leftwards 5 pixels', 'move upwards 3 pixels', 'set font size to 96'.   
-- -r : sjis range, only these characters in this range will be replaced. e.g. '-r A0-FFFF'.
-- -f : assign the path of ttf file.
-- -c : assign the path of chlist.txt.
-- -p : assign the path of the folder containing extracted FONT*.DAT files。
-- outputfolder ： the output folder.
+ - **-b** : embolden, e.g. `-b 0.75` means `embolden 0.75 pixel`
+ - **-x** : move rightwards, e.g. `-x -2.5` means `move leftwards 2.5 pixels`
+ - **-y** : move upwards, e.g. `-x 1.5` means `move upwards 1.5 pixels`
+ - **-s** : set the font size, e.g. `-s 48` means `set font size to 48`   
+Since the game contains different sizes of fonts, [MakeFont.py](SoraTrs/MakeFont.py) will create them together. These 4 arguments are **based on size 64**. Arguments for other sizes will be calculated proportionately. e.g. In the above examples, for size 128, their meanings are `embolden 1.5 pixel`, `move leftwards 5 pixels`, `move upwards 3 pixels`, `set font size to 96`.   
+- **-r** : sjis range, only these characters in this range will be replaced. e.g. `-r A0-FFFF`.
+- **-f** : assign the path of ttf file.
+- **-c** : assign the path of chlist.txt.
+- **-p** : assign the path of the folder containing extracted FONT*.DAT files。
+- **outputfolder** ： the output folder.
 
 ### The last
 
