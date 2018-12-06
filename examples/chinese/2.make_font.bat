@@ -8,7 +8,7 @@ set range_noascii=A0-FFFF
 
 set range=%range_noascii%
 
-set dir_old_fonts=old_fonts
+set dir_old_fonts=fonts_old
 set dir_fonts=fonts
 set font=font.ttf
 set fontwidth=FONTWDTH._DA

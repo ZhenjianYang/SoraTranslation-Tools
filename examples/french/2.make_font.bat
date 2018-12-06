@@ -6,9 +6,9 @@ set PYTHONPATH=%dir_sora_tr%\SoraTrs
 set range_all=20-FFFF
 set range_noascii=A0-FFFF
 
-set range=%range_all%
+set range=%range_noascii%
 
-set dir_old_fonts=old_fonts
+set dir_old_fonts=fonts_old
 set dir_fonts=fonts
 set font=font.ttf
 set fontwidth=FONTWDTH._DA
