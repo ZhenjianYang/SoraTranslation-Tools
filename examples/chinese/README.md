@@ -4,7 +4,7 @@ This is an example of Compiling Chinese scripts.
 
 - Clone [EDDecompiler](https://github.com/ZhenjianYang/EDDecompiler), [PyLibs](https://github.com/ZhenjianYang/PyLibs), [SoraVoiceScripts](https://github.com/ZhenjianYang/SoraVoiceScripts), and [This project](https://github.com/ZhenjianYang/SoraTranslation-Tools) to the same folder.
 - Create folder `dir` and copy all **\.dir** files from the game's root folder into it.
-- Create folder `fonts_old` and extract all **FONT\*\.DAT** or **FONT\*\.\_DA** files to it.
+- Create folder `fonts_old` and extract all **FONT\*\.DAT** or **FONT\*\.\_DA** files from ED6_DT00/ED6_DT20 to it.
 - Create folder `py` copy all py scripts files into it.
 
 ## 1.make_chlist.bat
